@@ -69,11 +69,11 @@ const Hero = () => {
             {/* Trust indicators */}
             <div className="mt-10 pt-8 border-t border-border">
               <p className="text-xs text-muted-foreground mb-3">Trusted by students from</p>
-              <div className="flex items-center gap-6 justify-center lg:justify-start text-muted-foreground/50">
-                <span className="text-sm font-medium">MIT</span>
-                <span className="text-sm font-medium">Stanford</span>
-                <span className="text-sm font-medium">Harvard</span>
-                <span className="text-sm font-medium">Oxford</span>
+              <div className="flex items-center gap-4 justify-center lg:justify-start text-muted-foreground/50 flex-wrap">
+                <span className="text-xs font-medium">King Saud University</span>
+                <span className="text-xs font-medium">King Abdulaziz University</span>
+                <span className="text-xs font-medium">King Khalid University</span>
+                <span className="text-xs font-medium">KFUPM</span>
               </div>
             </div>
           </motion.div>
