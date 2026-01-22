@@ -31,12 +31,12 @@ const Header = () => {
           </nav>
 
           <a
-            href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/edit?usp=sharing"
+            href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/copy"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary text-sm py-2"
           >
-            Open Planner
+            Get Your Copy
           </a>
         </div>
       </div>

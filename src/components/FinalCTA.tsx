@@ -43,23 +43,27 @@ const FinalCTA = () => {
 
           <p className="text-lg text-background/70 max-w-xl mx-auto mb-10">
             Join thousands of students who have transformed their academic performance 
-            with intelligent study planning. Your best grades are just a click away.
+            with intelligent study planning. Get your own private planner—completely free.
           </p>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.4, delay: 0.3 }}
+            className="flex flex-col items-center"
           >
             <a
-              href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/edit?usp=sharing"
+              href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/copy"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-xl transition-all duration-200 bg-background text-foreground hover:bg-background/90 active:scale-[0.98] shadow-elevated group"
             >
-              Get Started Now — It's Free
+              Get Your Private Planner — Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
             </a>
+            <p className="text-xs text-background/50 mt-3">
+              Clicking this will create your own copy to use privately.
+            </p>
           </motion.div>
         </motion.div>
       </div>

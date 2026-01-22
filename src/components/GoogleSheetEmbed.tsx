@@ -7,8 +7,9 @@ const GoogleSheetEmbed = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/edit?usp=sharing";
-  const embedUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqoZQ_gNJhNKjX7_qS3eXX9rVw5oRXvMvAjJ7Qf5VwL7pZUqR8VmBKqwJnU7rT5D8hPmGlQKb1n6Wz/pubhtml?widget=true&amp;headers=false";
+  const sheetId = "1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg";
+  const copyUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/copy`;
+  const previewUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/preview`;
 
   return (
     <section id="planner" className="py-24 lg:py-32">
@@ -25,22 +26,27 @@ const GoogleSheetEmbed = () => {
             Interactive Planner
           </span>
           <h2 className="section-title mb-4">
-            Try the planner right now
+            Preview the planner
           </h2>
-          <p className="section-subtitle mx-auto mb-8">
-            Explore the AI Study Planner below. For the full experience with editing capabilities, 
-            open it in Google Sheets.
+          <p className="section-subtitle mx-auto mb-6">
+            Take a look at how the AI Study Planner works. When you're ready, 
+            get your own private copy to customize and use.
           </p>
 
-          <a
-            href={sheetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary inline-flex"
-          >
-            Open Planner in Google Sheets
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          <div className="flex flex-col items-center">
+            <a
+              href={copyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-flex"
+            >
+              Get Your Private Copy
+              <ExternalLink className="w-4 h-4" />
+            </a>
+            <p className="text-xs text-muted-foreground mt-2">
+              Clicking this will create your own copy to use privately.
+            </p>
+          </div>
         </motion.div>
 
         {/* Embed Container */}
@@ -52,9 +58,9 @@ const GoogleSheetEmbed = () => {
         >
           <div className="relative w-full" style={{ paddingBottom: "60%" }}>
             <iframe
-              src={sheetUrl.replace('/edit?usp=sharing', '/preview')}
+              src={previewUrl}
               className="absolute inset-0 w-full h-full border-0"
-              title="AI Study Planner - Interactive Google Sheet"
+              title="AI Study Planner - Interactive Google Sheet Preview"
               allowFullScreen
             />
           </div>
@@ -67,7 +73,7 @@ const GoogleSheetEmbed = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-center text-sm text-muted-foreground mt-6"
         >
-          Make a copy to your own Google Drive and start customizing your study plan.
+          Your data stays private—only you can see and edit your personal copy.
         </motion.p>
       </div>
     </section>

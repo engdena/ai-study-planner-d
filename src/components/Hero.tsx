@@ -45,23 +45,26 @@ const Hero = () => {
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8">
               An intelligent study planner that adapts to your schedule, courses, and learning style. 
-              Built for university students who want to ace their exams without burnout.
+              Get your own private copy—your data stays yours, always.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <a
-                href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/edit?usp=sharing"
+                href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/copy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary group"
               >
-                Start Planning Free
+                Get Your Private Planner
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </a>
               <a href="#how-it-works" className="btn-secondary">
                 See How It Works
               </a>
             </div>
+            <p className="text-xs text-muted-foreground mt-3 text-center lg:text-left">
+              Clicking this will create your own private copy to use.
+            </p>
 
             {/* Trust indicators */}
             <div className="mt-10 pt-8 border-t border-border">
