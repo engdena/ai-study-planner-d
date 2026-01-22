@@ -33,8 +33,8 @@ const Solution = () => {
             </h2>
             <p className="section-subtitle mb-8">
               Our AI-powered planner analyzes your courses, deadlines, and available time 
-              to create personalized study schedules. No more guessing what to study or when—
-              just follow the plan and watch your grades improve.
+              to create personalized study schedules. Each user gets their own private copy—
+              your data is never shared with anyone else.
             </p>
 
             <ul className="space-y-4">
