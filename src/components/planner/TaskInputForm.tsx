@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Task } from "@/types/studyPlanner";
+import { cn } from "@/lib/utils";
 
 interface TaskInputFormProps {
   onAddTask: (task: Omit<Task, "id">) => void;
@@ -15,7 +23,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
   const [subject, setSubject] = useState("");
   const [difficulty, setDifficulty] = useState(3);
   const [priority, setPriority] = useState(3);
-  const [deadline, setDeadline] = useState("");
+  const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,14 +35,14 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
       subject: subject.trim(),
       difficulty,
       priority,
-      deadline: new Date(deadline),
+      deadline: deadline,
     });
 
     // Reset form
     setSubject("");
     setDifficulty(3);
     setPriority(3);
-    setDeadline("");
+    setDeadline(undefined);
   };
 
   const getDifficultyLabel = (value: number) => {
@@ -47,7 +56,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
   };
 
   // Get minimum date (today)
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return (
     <motion.div
@@ -121,25 +131,45 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
           </div>
         </div>
 
-        {/* Deadline */}
+        {/* Deadline with Popover Calendar */}
         <div className="space-y-2">
-          <Label htmlFor="deadline" className="text-sm font-medium flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
             Deadline
           </Label>
-          <Input
-            id="deadline"
-            type="date"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            min={today}
-            className="w-full"
-            required
-          />
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !deadline && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {deadline ? format(deadline, "MMMM d, yyyy") : "Select deadline date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={deadline}
+                onSelect={(date) => {
+                  setDeadline(date);
+                  setIsCalendarOpen(false);
+                }}
+                disabled={(date) => date < today}
+                initialFocus
+                captionLayout="dropdown-buttons"
+                fromYear={new Date().getFullYear()}
+                toYear={new Date().getFullYear() + 5}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Submit Button */}
-        <Button type="submit" className="w-full btn-primary">
+        <Button type="submit" className="w-full btn-primary" disabled={!subject.trim() || !deadline}>
           <Plus className="w-4 h-4" />
           Add Task
         </Button>
