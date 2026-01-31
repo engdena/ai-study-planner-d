@@ -5,7 +5,7 @@ import Solution from "@/components/Solution";
 import HowItWorks from "@/components/HowItWorks";
 import Features from "@/components/Features";
 import WhoItsFor from "@/components/WhoItsFor";
-import GoogleSheetEmbed from "@/components/GoogleSheetEmbed";
+import InteractivePlanner from "@/components/planner/InteractivePlanner";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 
@@ -20,7 +20,7 @@ const Index = () => {
         <HowItWorks />
         <Features />
         <WhoItsFor />
-        <GoogleSheetEmbed />
+        <InteractivePlanner />
         <FinalCTA />
       </main>
       <Footer />
