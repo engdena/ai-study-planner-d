@@ -7,7 +7,7 @@ const GoogleSheetEmbed = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  const sheetId = "1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg";
+  const sheetId = "1D2WSKU5QDCAKI99QoirYpZFrxl-ikRhwX1cUhXZahyk";
   const copyUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/copy`;
   const previewUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/preview`;
 
