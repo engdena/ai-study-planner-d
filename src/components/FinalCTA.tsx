@@ -53,7 +53,7 @@ const FinalCTA = () => {
             className="flex flex-col items-center"
           >
             <a
-              href="https://docs.google.com/spreadsheets/d/1koW4a1BgcIWwt_eoqJxw35FA9rzt0hP8jCmTDZrGccg/copy"
+              href="https://docs.google.com/spreadsheets/d/1D2WSKU5QDCAKI99QoirYpZFrxl-ikRhwX1cUhXZahyk/copy"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-xl transition-all duration-200 bg-background text-foreground hover:bg-background/90 active:scale-[0.98] shadow-elevated group"
