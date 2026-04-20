@@ -3,20 +3,12 @@ import { BookOpen, ArrowDown } from "lucide-react";
 
 const Header = () => {
   const scrollToTasks = () => {
-    // Switch to Task Manager tab if needed by clicking it, then scroll
-    const trigger = document.querySelector<HTMLElement>(
-      '[role="tab"][value="tasks"], [data-state][value="tasks"]'
-    );
-    // Radix uses data-value
-    const radixTab = document.querySelector<HTMLElement>(
-      'button[role="tab"][data-state]:nth-of-type(2)'
-    );
-    (trigger || radixTab)?.click();
+    window.dispatchEvent(new CustomEvent("planner:open-tasks"));
     setTimeout(() => {
       document
         .getElementById("planner")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+    }, 60);
   };
 
   return (

@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Download, ExternalLink, LayoutDashboard, ListChecks } from "lucide-react";
 import { useStudyPlanner } from "@/hooks/useStudyPlanner";
 import TaskInputForm from "./TaskInputForm";
@@ -26,6 +26,12 @@ const InteractivePlanner = () => {
 
   const sheetCopyUrl =
     "https://docs.google.com/spreadsheets/d/1D2WSKU5QDCAKI99QoirYpZFrxl-ikRhwX1cUhXZahyk/copy";
+
+  useEffect(() => {
+    const handler = () => setTab("tasks");
+    window.addEventListener("planner:open-tasks", handler);
+    return () => window.removeEventListener("planner:open-tasks", handler);
+  }, []);
 
   return (
     <section id="planner" className="py-20 lg:py-28 bg-secondary/40 border-y border-border">
