@@ -16,10 +16,15 @@ const WeeklyCalendar = ({ schedule }: WeeklyCalendarProps) => {
       transition={{ delay: 0.1 }}
       className="card-elevated p-6"
     >
-      <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-        <CalendarDays className="w-5 h-5 text-primary" />
-        Weekly Study Schedule
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-semibold text-foreground tracking-tight flex items-center gap-2">
+          <CalendarDays className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+          Weekly Schedule
+        </h3>
+        <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Load Balanced
+        </span>
+      </div>
 
       {schedule.length === 0 || schedule.every((d) => d.tasks.length === 0) ? (
         <div className="text-center py-12 text-muted-foreground">
