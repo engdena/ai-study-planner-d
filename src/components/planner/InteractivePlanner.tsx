@@ -1,13 +1,11 @@
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import {
   Download,
   ExternalLink,
   Plus,
   ArrowUp,
-  Eye,
-  EyeOff,
-  X,
+  Brain,
 } from "lucide-react";
 import { useStudyPlanner } from "@/hooks/useStudyPlanner";
 import TaskInputForm from "./TaskInputForm";
@@ -16,6 +14,9 @@ import WeeklyCalendar from "./WeeklyCalendar";
 import PlannerSettings from "./PlannerSettings";
 import DashboardSummary from "./DashboardSummary";
 import LiveStatsSheet from "./LiveStatsSheet";
+import CapacityUtilization from "./CapacityUtilization";
+import WorkBreakdown from "./WorkBreakdown";
+import DeepWorkOverlay from "./DeepWorkOverlay";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ const InteractivePlanner = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [focusMode, setFocusMode] = useState(false);
+  const [deepWorkOpen, setDeepWorkOpen] = useState(false);
   const [showFab, setShowFab] = useState(false);
 
   const {
@@ -37,6 +38,9 @@ const InteractivePlanner = () => {
     weeklySchedule,
     addTask,
     removeTask,
+    toggleTaskCompleted,
+    clearCompleted,
+    resetPlan,
     updateSettings,
   } = useStudyPlanner();
 
@@ -49,7 +53,6 @@ const InteractivePlanner = () => {
     return () => window.removeEventListener("planner:open-tasks", handler);
   }, []);
 
-  // Show FAB once user has scrolled past results
   useEffect(() => {
     const onScroll = () => {
       if (!resultsRef.current) return;
@@ -64,9 +67,13 @@ const InteractivePlanner = () => {
     resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const topPriority = [...calculatedTasks]
-    .sort((a, b) => b.finalWeight - a.finalWeight)
-    .slice(0, 3);
+  const topTask = useMemo(
+    () =>
+      [...calculatedTasks]
+        .filter((t) => !t.completed)
+        .sort((a, b) => b.finalWeight - a.finalWeight)[0] || null,
+    [calculatedTasks]
+  );
 
   return (
     <section
@@ -74,7 +81,6 @@ const InteractivePlanner = () => {
       className="py-16 lg:py-24 bg-secondary/40 border-b border-border"
     >
       <div className="container-wide section-padding" ref={ref}>
-        {/* Header row */}
         <motion.div
           ref={resultsRef}
           initial={{ opacity: 0, y: 16 }}
@@ -84,28 +90,24 @@ const InteractivePlanner = () => {
         >
           <div>
             <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
-              Executive Dashboard
+              Decision Support System
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
               Your Study Plan
             </h2>
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-              Real-time calculations. Every change updates your plan instantly.
+              Real-time analytics. Every change updates your plan instantly.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => setFocusMode((f) => !f)}
+              onClick={() => setDeepWorkOpen(true)}
               className="btn-outline"
-              aria-pressed={focusMode}
+              aria-label="Enter Deep Work mode"
             >
-              {focusMode ? (
-                <Eye className="w-4 h-4" strokeWidth={1.5} />
-              ) : (
-                <EyeOff className="w-4 h-4" strokeWidth={1.5} />
-              )}
-              {focusMode ? "Exit Focus" : "Focus Mode"}
+              <Brain className="w-4 h-4" strokeWidth={1.5} />
+              Deep Work
             </button>
             <button
               onClick={() => setQuickAddOpen(true)}
@@ -120,94 +122,46 @@ const InteractivePlanner = () => {
         {/* KPI HEADER ROW */}
         <DashboardSummary tasks={calculatedTasks} settings={settings} />
 
-        {/* FOCUS MODE — only top tasks */}
-        {focusMode ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 bg-card rounded-xl p-8 shadow-[0_2px_8px_-2px_hsl(0_0%_0%_/_0.06)]"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
-                  Focus Mode
-                </span>
-                <h3 className="mt-1 text-xl font-semibold text-foreground tracking-tight">
-                  Top {topPriority.length} Priority Targets
-                </h3>
-              </div>
-            </div>
-            {topPriority.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                Add tasks to enter focus mode.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {topPriority.map((task, i) => (
-                  <li
-                    key={task.id}
-                    className="flex items-center justify-between gap-4 p-4 rounded-lg border border-border bg-background"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <span className="text-2xl font-semibold text-muted-foreground tabular-nums w-6">
-                        {i + 1}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {task.subject}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {task.daysLeft <= 0
-                            ? "Overdue"
-                            : `${task.daysLeft} days remaining`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground tabular-nums">
-                        {Math.round(task.studyHours * 60)} min
-                      </p>
-                      <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                        / week
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </motion.div>
-        ) : (
-          <>
-            {/* Calendar */}
-            <div className="mt-6">
-              <WeeklyCalendar schedule={weeklySchedule} />
-            </div>
+        {/* Predictive analytics row */}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CapacityUtilization tasks={calculatedTasks} settings={settings} />
+          <WorkBreakdown tasks={calculatedTasks} />
+        </div>
 
-            {/* Inputs below */}
-            <div className="mt-10 pt-10 border-t border-border">
-              <div className="mb-6">
-                <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
-                  Inputs
-                </span>
-                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
-                  Task Manager
-                </h3>
-              </div>
-              <div className="grid lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-4 space-y-6">
-                  <TaskInputForm onAddTask={addTask} />
-                  <PlannerSettings
-                    settings={settings}
-                    onUpdateSettings={updateSettings}
-                  />
-                </div>
-                <div className="lg:col-span-8">
-                  <TaskList tasks={calculatedTasks} onRemoveTask={removeTask} />
-                </div>
-              </div>
+        {/* Calendar */}
+        <div className="mt-6">
+          <WeeklyCalendar schedule={weeklySchedule} />
+        </div>
+
+        {/* Inputs below */}
+        <div className="mt-10 pt-10 border-t border-border">
+          <div className="mb-6">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground font-semibold">
+              Inputs
+            </span>
+            <h3 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
+              Task Manager
+            </h3>
+          </div>
+          <div className="grid lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-4 space-y-6">
+              <TaskInputForm onAddTask={addTask} />
+              <PlannerSettings
+                settings={settings}
+                onUpdateSettings={updateSettings}
+              />
             </div>
-          </>
-        )}
+            <div className="lg:col-span-8">
+              <TaskList
+                tasks={calculatedTasks}
+                onRemoveTask={removeTask}
+                onToggleCompleted={toggleTaskCompleted}
+                onClearCompleted={clearCompleted}
+                onResetPlan={resetPlan}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Expert Mode */}
         <motion.div
@@ -259,8 +213,15 @@ const InteractivePlanner = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Floating live stats */}
+      {/* Live stats */}
       <LiveStatsSheet tasks={calculatedTasks} settings={settings} />
+
+      {/* Deep Work overlay */}
+      <DeepWorkOverlay
+        open={deepWorkOpen}
+        onClose={() => setDeepWorkOpen(false)}
+        task={topTask}
+      />
 
       {/* Jump-to-results FAB */}
       <AnimatePresence>
@@ -270,7 +231,7 @@ const InteractivePlanner = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             onClick={scrollToResults}
-            className="fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-foreground text-background shadow-[0_8px_24px_-4px_hsl(0_0%_0%_/_0.3)] hover:scale-105 active:scale-95 transition-transform flex items-center justify-center"
+            className="fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full bg-foreground text-background shadow-elevated hover:scale-105 active:scale-95 transition-transform flex items-center justify-center"
             aria-label="Jump to results"
           >
             <ArrowUp className="w-5 h-5" strokeWidth={2} />
