@@ -17,9 +17,10 @@ import { cn } from "@/lib/utils";
 
 interface TaskInputFormProps {
   onAddTask: (task: Omit<Task, "id">) => void;
+  embedded?: boolean;
 }
 
-const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
+const TaskInputForm = ({ onAddTask, embedded = false }: TaskInputFormProps) => {
   const [subject, setSubject] = useState("");
   const [difficulty, setDifficulty] = useState(3);
   const [priority, setPriority] = useState(3);
@@ -63,12 +64,14 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card-elevated p-6"
+      className={embedded ? "" : "card-elevated p-6"}
     >
-      <h3 className="text-sm font-semibold text-foreground mb-5 tracking-tight flex items-center gap-2">
-        <Plus className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
-        Add New Task
-      </h3>
+      {!embedded && (
+        <h3 className="text-sm font-semibold text-foreground mb-5 tracking-tight flex items-center gap-2">
+          <Plus className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+          Add New Task
+        </h3>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Subject Name */}
