@@ -65,8 +65,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
       animate={{ opacity: 1, y: 0 }}
       className="card-elevated p-6"
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-        <Plus className="w-5 h-5 text-primary" />
+      <h3 className="text-sm font-semibold text-foreground mb-5 tracking-tight flex items-center gap-2">
+        <Plus className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
         Add New Task
       </h3>
 
@@ -91,8 +91,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label className="text-sm font-medium">Difficulty</Label>
-            <span className="text-sm text-primary font-medium">
-              {difficulty} - {getDifficultyLabel(difficulty)}
+            <span className="text-xs text-foreground font-medium tabular-nums">
+              {difficulty} · {getDifficultyLabel(difficulty)}
             </span>
           </div>
           <Slider
@@ -113,8 +113,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label className="text-sm font-medium">Priority</Label>
-            <span className="text-sm text-primary font-medium">
-              {priority} - {getPriorityLabel(priority)}
+            <span className="text-xs text-foreground font-medium tabular-nums">
+              {priority} · {getPriorityLabel(priority)}
             </span>
           </div>
           <Slider

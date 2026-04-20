@@ -17,8 +17,8 @@ const PlannerSettings = ({ settings, onUpdateSettings }: PlannerSettingsProps) =
       transition={{ delay: 0.05 }}
       className="card-elevated p-6"
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-        <Settings className="w-5 h-5 text-primary" />
+      <h3 className="text-sm font-semibold text-foreground mb-5 tracking-tight flex items-center gap-2">
+        <Settings className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
         Study Settings
       </h3>
 
@@ -30,7 +30,7 @@ const PlannerSettings = ({ settings, onUpdateSettings }: PlannerSettingsProps) =
               <Clock className="w-4 h-4 text-muted-foreground" />
               Total Weekly Study Hours
             </Label>
-            <span className="text-sm text-primary font-semibold">
+            <span className="text-xs text-foreground font-semibold tabular-nums">
               {settings.totalWeeklyHours} hrs
             </span>
           </div>
@@ -55,7 +55,7 @@ const PlannerSettings = ({ settings, onUpdateSettings }: PlannerSettingsProps) =
               <Calendar className="w-4 h-4 text-muted-foreground" />
               Study Days Per Week
             </Label>
-            <span className="text-sm text-primary font-semibold">
+            <span className="text-xs text-foreground font-semibold tabular-nums">
               {settings.studyDaysPerWeek} days
             </span>
           </div>
