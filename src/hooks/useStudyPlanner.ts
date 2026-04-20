@@ -16,40 +16,34 @@ export const useStudyPlanner = () => {
   const [settings, setSettings] = useState<PlannerSettings>({
     totalWeeklyHours: 10,
     studyDaysPerWeek: 5,
+    dailyAvailableHours: 4,
+    startTime: "09:00",
   });
 
   const totalWeight = useMemo(() => calculateTotalWeight(tasks), [tasks]);
 
-  const calculatedTasks: CalculatedTask[] = useMemo(() => {
-    return tasks.map((task) => processTask(task, totalWeight, settings));
-  }, [tasks, totalWeight, settings]);
+  const calculatedTasks: CalculatedTask[] = useMemo(
+    () => tasks.map((task) => processTask(task, totalWeight, settings)),
+    [tasks, totalWeight, settings]
+  );
 
   const weeklySchedule: DaySchedule[] = useMemo(() => {
     const studyDays = DAYS_OF_WEEK.slice(0, settings.studyDaysPerWeek);
-    
     return studyDays.map((day) => {
-      const dayTasks = calculatedTasks.map((task, index) => ({
-        subject: task.subject,
-        duration: Math.round(task.dailyStudyTime * 60), // Convert hours to minutes
-        color: getSubjectColor(index),
-      })).filter(t => t.duration > 0);
-
-      const totalMinutes = dayTasks.reduce((sum, t) => sum + t.duration, 0);
-
-      return {
-        day,
-        tasks: dayTasks,
-        totalMinutes,
-      };
+      const dayTasks = calculatedTasks
+        .map((task, index) => ({
+          subject: task.subject,
+          duration: Math.round(task.dailyStudyTime * 60),
+          color: getSubjectColor(index),
+        }))
+        .filter((t) => t.duration > 0);
+      const totalMinutes = dayTasks.reduce((s, t) => s + t.duration, 0);
+      return { day, tasks: dayTasks, totalMinutes };
     });
   }, [calculatedTasks, settings.studyDaysPerWeek]);
 
   const addTask = useCallback((task: Omit<Task, "id">) => {
-    const newTask: Task = {
-      ...task,
-      id: crypto.randomUUID(),
-    };
-    setTasks((prev) => [...prev, newTask]);
+    setTasks((prev) => [...prev, { ...task, id: crypto.randomUUID() }]);
   }, []);
 
   const removeTask = useCallback((id: string) => {
@@ -57,17 +51,25 @@ export const useStudyPlanner = () => {
   }, []);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+  }, []);
+
+  const toggleTaskCompleted = useCallback((id: string) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
+  }, []);
+
+  const clearCompleted = useCallback(() => {
+    setTasks((prev) => prev.filter((t) => !t.completed));
+  }, []);
+
+  const resetPlan = useCallback(() => {
+    setTasks([]);
   }, []);
 
   const updateSettings = useCallback((newSettings: Partial<PlannerSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
-  }, []);
-
-  const clearAllTasks = useCallback(() => {
-    setTasks([]);
   }, []);
 
   return {
@@ -79,7 +81,9 @@ export const useStudyPlanner = () => {
     addTask,
     removeTask,
     updateTask,
+    toggleTaskCompleted,
+    clearCompleted,
+    resetPlan,
     updateSettings,
-    clearAllTasks,
   };
 };
