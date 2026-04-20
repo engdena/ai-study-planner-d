@@ -124,12 +124,11 @@
   }
 
   .card-elevated {
-    @apply bg-card rounded-2xl border;
-    box-shadow: var(--shadow-medium);
+    @apply bg-card rounded-lg border border-border;
   }
 
   .card-glow {
-    box-shadow: var(--shadow-glow);
+    box-shadow: var(--shadow-elevated);
   }
 
   .btn-primary {

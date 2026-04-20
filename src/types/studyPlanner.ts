@@ -136,16 +136,16 @@ export const formatDurationFromMinutes = (minutes: number): string => {
   return `${hrs} hr ${mins} min`;
 };
 
-// Colors for different subjects
+// Monochrome shades for subjects (B/W aesthetic)
 export const SUBJECT_COLORS = [
-  "hsl(160, 84%, 39%)", // Primary emerald
-  "hsl(200, 80%, 45%)", // Blue
-  "hsl(280, 70%, 50%)", // Purple
-  "hsl(340, 75%, 55%)", // Pink
-  "hsl(30, 90%, 50%)",  // Orange
-  "hsl(180, 70%, 40%)", // Teal
-  "hsl(50, 90%, 45%)",  // Yellow
-  "hsl(220, 70%, 55%)", // Indigo
+  "hsl(0, 0%, 9%)",
+  "hsl(0, 0%, 25%)",
+  "hsl(0, 0%, 40%)",
+  "hsl(0, 0%, 55%)",
+  "hsl(0, 0%, 70%)",
+  "hsl(0, 0%, 18%)",
+  "hsl(0, 0%, 32%)",
+  "hsl(0, 0%, 48%)",
 ];
 
 export const getSubjectColor = (index: number): string => {
