@@ -1,14 +1,12 @@
 import { motion } from "framer-motion";
 import { CalendarDays } from "lucide-react";
 import { DaySchedule, formatDurationFromMinutes } from "@/types/studyPlanner";
-import type { SubjectProgress } from "@/hooks/useStudyPlanner";
 
 interface WeeklyCalendarProps {
   schedule: DaySchedule[];
-  progress?: SubjectProgress[];
 }
 
-const WeeklyCalendar = ({ schedule, progress = [] }: WeeklyCalendarProps) => {
+const WeeklyCalendar = ({ schedule }: WeeklyCalendarProps) => {
   const maxMinutes = Math.max(...schedule.map((d) => d.totalMinutes), 1);
 
   return (
@@ -18,10 +16,15 @@ const WeeklyCalendar = ({ schedule, progress = [] }: WeeklyCalendarProps) => {
       transition={{ delay: 0.1 }}
       className="card-elevated p-6"
     >
-      <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-        <CalendarDays className="w-5 h-5 text-primary" />
-        Weekly Study Schedule
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-semibold text-foreground tracking-tight flex items-center gap-2">
+          <CalendarDays className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+          Weekly Schedule
+        </h3>
+        <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Load Balanced
+        </span>
+      </div>
 
       {schedule.length === 0 || schedule.every((d) => d.tasks.length === 0) ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -86,29 +89,21 @@ const WeeklyCalendar = ({ schedule, progress = [] }: WeeklyCalendarProps) => {
             </motion.div>
           ))}
 
-          {/* Subject progress (synced with Daily View) */}
+          {/* Legend */}
           <div className="pt-4 border-t border-border mt-6">
-            <p className="text-xs text-muted-foreground mb-3">Weekly progress by subject</p>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {progress.map((p) => {
-                const pct = p.totalMinutes ? Math.round((p.doneMinutes / p.totalMinutes) * 100) : 0;
-                return (
-                  <div key={p.subject} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-2 text-foreground">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-                        {p.subject}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {pct === 100 ? "Completed" : `${formatDurationFromMinutes(p.doneMinutes)} / ${formatDurationFromMinutes(p.totalMinutes)}`}
-                      </span>
-                    </div>
-                    <div className="h-1 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: p.color }} />
-                    </div>
-                  </div>
-                );
-              })}
+            <p className="text-xs text-muted-foreground mb-2">Legend</p>
+            <div className="flex flex-wrap gap-3">
+              {schedule[0]?.tasks.map((task) => (
+                <div key={task.subject} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: task.color }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {task.subject}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

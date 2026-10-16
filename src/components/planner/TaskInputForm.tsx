@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, CalendarIcon } from "lucide-react";
+import { Plus, CalendarIcon, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,50 +12,51 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Task } from "@/types/studyPlanner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Task, WorkIntensity, WORK_INTENSITY_LABELS } from "@/types/studyPlanner";
 import { cn } from "@/lib/utils";
 
 interface TaskInputFormProps {
   onAddTask: (task: Omit<Task, "id">) => void;
+  embedded?: boolean;
 }
 
-const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
+const TaskInputForm = ({ onAddTask, embedded = false }: TaskInputFormProps) => {
   const [subject, setSubject] = useState("");
   const [difficulty, setDifficulty] = useState(3);
   const [priority, setPriority] = useState(3);
   const [deadline, setDeadline] = useState<Date | undefined>(undefined);
+  const [workIntensity, setWorkIntensity] = useState<WorkIntensity>("deep");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!subject.trim() || !deadline) return;
-
     onAddTask({
       subject: subject.trim(),
       difficulty,
       priority,
-      deadline: deadline,
+      deadline,
+      workIntensity,
     });
-
-    // Reset form
     setSubject("");
     setDifficulty(3);
     setPriority(3);
     setDeadline(undefined);
+    setWorkIntensity("deep");
   };
 
-  const getDifficultyLabel = (value: number) => {
-    const labels = ["Very Easy", "Easy", "Medium", "Hard", "Very Hard"];
-    return labels[value - 1];
-  };
+  const getDifficultyLabel = (v: number) =>
+    ["Very Easy", "Easy", "Medium", "Hard", "Very Hard"][v - 1];
+  const getPriorityLabel = (v: number) =>
+    ["Low", "Below Average", "Medium", "High", "Critical"][v - 1];
 
-  const getPriorityLabel = (value: number) => {
-    const labels = ["Low", "Below Average", "Medium", "High", "Critical"];
-    return labels[value - 1];
-  };
-
-  // Get minimum date (today)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -63,15 +64,16 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card-elevated p-6"
+      className={embedded ? "" : "card-elevated p-6"}
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-        <Plus className="w-5 h-5 text-primary" />
-        Add New Task
-      </h3>
+      {!embedded && (
+        <h3 className="text-sm font-semibold text-foreground mb-5 tracking-tight flex items-center gap-2">
+          <Plus className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+          Add New Task
+        </h3>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Subject Name */}
         <div className="space-y-2">
           <Label htmlFor="subject" className="text-sm font-medium">
             Subject / Task Name
@@ -87,21 +89,48 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
           />
         </div>
 
-        {/* Difficulty Slider */}
+        {/* Work Intensity */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-muted-foreground" strokeWidth={1.5} />
+            Work Intensity
+          </Label>
+          <Select
+            value={workIntensity}
+            onValueChange={(v) => setWorkIntensity(v as WorkIntensity)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="deep">Deep Work</SelectItem>
+              <SelectItem value="admin">Administrative</SelectItem>
+              <SelectItem value="review">Review</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground">
+            {WORK_INTENSITY_LABELS[workIntensity]} —{" "}
+            {workIntensity === "deep"
+              ? "high-focus, cognitively demanding"
+              : workIntensity === "admin"
+              ? "low-focus, repetitive tasks"
+              : "consolidation and recall"}
+          </p>
+        </div>
+
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label className="text-sm font-medium">Difficulty</Label>
-            <span className="text-sm text-primary font-medium">
-              {difficulty} - {getDifficultyLabel(difficulty)}
+            <span className="text-xs text-foreground font-medium tabular-nums">
+              {difficulty} · {getDifficultyLabel(difficulty)}
             </span>
           </div>
           <Slider
             value={[difficulty]}
-            onValueChange={(value) => setDifficulty(value[0])}
+            onValueChange={(v) => setDifficulty(v[0])}
             min={1}
             max={5}
             step={1}
-            className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Easy</span>
@@ -109,21 +138,19 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
           </div>
         </div>
 
-        {/* Priority Slider */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label className="text-sm font-medium">Priority</Label>
-            <span className="text-sm text-primary font-medium">
-              {priority} - {getPriorityLabel(priority)}
+            <span className="text-xs text-foreground font-medium tabular-nums">
+              {priority} · {getPriorityLabel(priority)}
             </span>
           </div>
           <Slider
             value={[priority]}
-            onValueChange={(value) => setPriority(value[0])}
+            onValueChange={(v) => setPriority(v[0])}
             min={1}
             max={5}
             step={1}
-            className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Low</span>
@@ -131,7 +158,6 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
           </div>
         </div>
 
-        {/* Deadline with Popover Calendar */}
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <CalendarIcon className="w-4 h-4" />
@@ -154,8 +180,8 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
               <Calendar
                 mode="single"
                 selected={deadline}
-                onSelect={(date) => {
-                  setDeadline(date);
+                onSelect={(d) => {
+                  setDeadline(d);
                   setIsCalendarOpen(false);
                 }}
                 disabled={(date) => date < today}
@@ -168,8 +194,11 @@ const TaskInputForm = ({ onAddTask }: TaskInputFormProps) => {
           </Popover>
         </div>
 
-        {/* Submit Button */}
-        <Button type="submit" className="w-full btn-primary" disabled={!subject.trim() || !deadline}>
+        <Button
+          type="submit"
+          className="w-full btn-primary"
+          disabled={!subject.trim() || !deadline}
+        >
           <Plus className="w-4 h-4" />
           Add Task
         </Button>
