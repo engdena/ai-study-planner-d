@@ -1,21 +1,11 @@
 // Study Planner Types - based on Excel logic
 
-export type WorkIntensity = "deep" | "admin" | "review";
-
-export const WORK_INTENSITY_LABELS: Record<WorkIntensity, string> = {
-  deep: "Deep Work",
-  admin: "Administrative",
-  review: "Review",
-};
-
 export interface Task {
   id: string;
   subject: string;
   difficulty: number; // 1-5
   priority: number; // 1-5
   deadline: Date;
-  workIntensity: WorkIntensity;
-  completed?: boolean;
 }
 
 export interface CalculatedTask extends Task {
@@ -30,8 +20,6 @@ export interface CalculatedTask extends Task {
 export interface PlannerSettings {
   totalWeeklyHours: number;
   studyDaysPerWeek: number;
-  dailyAvailableHours: number; // for capacity utilization
-  startTime: string; // "HH:MM" 24h, for projected completion
 }
 
 export interface DaySchedule {
@@ -55,16 +43,26 @@ export const calculateDaysLeft = (deadline: Date): number => {
 };
 
 export const calculateUrgencyScore = (daysLeft: number): number => {
-  if (daysLeft <= 0) return 1;
-  if (daysLeft >= 30) return 0.1;
-  return Math.max(0.1, 1 - daysLeft / 30);
+  // Urgency increases as deadline approaches
+  // Using inverse relationship: closer deadline = higher urgency
+  if (daysLeft <= 0) return 1; // Max urgency for overdue
+  if (daysLeft >= 30) return 0.1; // Minimum urgency for far deadlines
+  return Math.max(0.1, 1 - (daysLeft / 30));
 };
 
-export const calculateBaseWeight = (difficulty: number, priority: number): number =>
-  difficulty * priority;
+export const calculateBaseWeight = (difficulty: number, priority: number): number => {
+  // BaseWeight = Difficulty × Priority
+  return difficulty * priority;
+};
 
-export const calculateFinalWeight = (baseWeight: number, urgencyScore: number): number =>
-  baseWeight * (1 + urgencyScore);
+export const calculateFinalWeight = (
+  baseWeight: number,
+  urgencyScore: number
+): number => {
+  // FinalWeight = BaseWeight × (1 + UrgencyScore)
+  // This gives more weight to urgent tasks
+  return baseWeight * (1 + urgencyScore);
+};
 
 export const calculateStudyHours = (
   finalWeight: number,
@@ -72,6 +70,7 @@ export const calculateStudyHours = (
   totalWeeklyHours: number
 ): number => {
   if (totalWeight === 0) return 0;
+  // Proportional distribution based on weight
   return (finalWeight / totalWeight) * totalWeeklyHours;
 };
 
@@ -94,6 +93,7 @@ export const processTask = (
   const finalWeight = calculateFinalWeight(baseWeight, urgencyScore);
   const studyHours = calculateStudyHours(finalWeight, totalWeight, settings.totalWeeklyHours);
   const dailyStudyTime = calculateDailyStudyTime(studyHours, settings.studyDaysPerWeek);
+
   return {
     ...task,
     daysLeft,
@@ -105,59 +105,49 @@ export const processTask = (
   };
 };
 
-export const calculateTotalWeight = (tasks: Task[]): number =>
-  tasks.reduce((total, task) => {
+export const calculateTotalWeight = (tasks: Task[]): number => {
+  return tasks.reduce((total, task) => {
     const daysLeft = calculateDaysLeft(task.deadline);
     const urgencyScore = calculateUrgencyScore(daysLeft);
     const baseWeight = calculateBaseWeight(task.difficulty, task.priority);
-    return total + calculateFinalWeight(baseWeight, urgencyScore);
+    const finalWeight = calculateFinalWeight(baseWeight, urgencyScore);
+    return total + finalWeight;
   }, 0);
+};
 
 export const formatDuration = (hours: number): string => {
-  if (hours <= 0) return "0 min";
+  if (hours === 0) return "0 min";
   const totalMinutes = Math.round(hours * 60);
   const hrs = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
+  
   if (hrs === 0) return `${mins} min`;
   if (mins === 0) return `${hrs} hr`;
   return `${hrs} hr ${mins} min`;
 };
 
 export const formatDurationFromMinutes = (minutes: number): string => {
-  if (minutes <= 0) return "0 min";
+  if (minutes === 0) return "0 min";
   const hrs = Math.floor(minutes / 60);
   const mins = Math.round(minutes % 60);
+  
   if (hrs === 0) return `${mins} min`;
   if (mins === 0) return `${hrs} hr`;
   return `${hrs} hr ${mins} min`;
 };
 
-// Project completion time given start time HH:MM and total hours of work
-export const projectCompletionTime = (startTime: string, totalHours: number): string => {
-  if (totalHours <= 0) return "—";
-  const [h, m] = startTime.split(":").map(Number);
-  const start = new Date();
-  start.setHours(h || 9, m || 0, 0, 0);
-  const end = new Date(start.getTime() + totalHours * 60 * 60 * 1000);
-  const day =
-    end.getDate() !== start.getDate()
-      ? ` (+${Math.floor((end.getTime() - start.getTime()) / 86400000) || 1}d)`
-      : "";
-  const hh = end.getHours().toString().padStart(2, "0");
-  const mm = end.getMinutes().toString().padStart(2, "0");
-  return `${hh}:${mm}${day}`;
-};
-
+// Colors for different subjects
 export const SUBJECT_COLORS = [
-  "hsl(0, 0%, 9%)",
-  "hsl(0, 0%, 25%)",
-  "hsl(0, 0%, 40%)",
-  "hsl(0, 0%, 55%)",
-  "hsl(0, 0%, 70%)",
-  "hsl(0, 0%, 18%)",
-  "hsl(0, 0%, 32%)",
-  "hsl(0, 0%, 48%)",
+  "hsl(160, 84%, 39%)", // Primary emerald
+  "hsl(200, 80%, 45%)", // Blue
+  "hsl(280, 70%, 50%)", // Purple
+  "hsl(340, 75%, 55%)", // Pink
+  "hsl(30, 90%, 50%)",  // Orange
+  "hsl(180, 70%, 40%)", // Teal
+  "hsl(50, 90%, 45%)",  // Yellow
+  "hsl(220, 70%, 55%)", // Indigo
 ];
 
-export const getSubjectColor = (index: number): string =>
-  SUBJECT_COLORS[index % SUBJECT_COLORS.length];
+export const getSubjectColor = (index: number): string => {
+  return SUBJECT_COLORS[index % SUBJECT_COLORS.length];
+};

@@ -8,17 +8,32 @@ import {
   processTask,
   getSubjectColor,
 } from "@/types/studyPlanner";
+import {
+  DailyBlock,
+  BlockOverride,
+  generateBlocksForDate,
+  studyDatesForWeek,
+  dateKey,
+  timeToMinutes,
+} from "@/lib/dailyPlan";
 
-const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
+const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+export interface SubjectProgress {
+  subject: string;
+  color: string;
+  doneMinutes: number;
+  totalMinutes: number;
+}
 
 export const useStudyPlanner = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [settings, setSettings] = useState<PlannerSettings>({
     totalWeeklyHours: 10,
     studyDaysPerWeek: 5,
-    dailyAvailableHours: 4,
-    startTime: "09:00",
   });
+  const [overrides, setOverrides] = useState<Record<string, BlockOverride>>({});
+  const [manualBlocks, setManualBlocks] = useState<DailyBlock[]>([]);
 
   const totalWeight = useMemo(() => calculateTotalWeight(tasks), [tasks]);
 
@@ -27,20 +42,59 @@ export const useStudyPlanner = () => {
     [tasks, totalWeight, settings]
   );
 
+  const getBlocksForDate = useCallback(
+    (date: Date): DailyBlock[] => {
+      const key = dateKey(date);
+      const generated = generateBlocksForDate(date, calculatedTasks, settings.studyDaysPerWeek)
+        .map((b) => ({ ...b, ...overrides[b.id] }))
+        .filter((b) => !(b as BlockOverride).deleted);
+      const manual = manualBlocks.filter((b) => b.date === key);
+      return [...generated, ...manual]
+        .map(({ ...b }) => {
+          delete (b as BlockOverride).deleted;
+          return b as DailyBlock;
+        })
+        .sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+    },
+    [calculatedTasks, settings.studyDaysPerWeek, overrides, manualBlocks]
+  );
+
+  // Current week's daily blocks → drives Weekly Overview so both views stay in sync
+  const weekDates = useMemo(
+    () => studyDatesForWeek(new Date(), settings.studyDaysPerWeek),
+    [settings.studyDaysPerWeek]
+  );
+
   const weeklySchedule: DaySchedule[] = useMemo(() => {
-    const studyDays = DAYS_OF_WEEK.slice(0, settings.studyDaysPerWeek);
-    return studyDays.map((day) => {
-      const dayTasks = calculatedTasks
-        .map((task, index) => ({
-          subject: task.subject,
-          duration: Math.round(task.dailyStudyTime * 60),
-          color: getSubjectColor(index),
-        }))
-        .filter((t) => t.duration > 0);
-      const totalMinutes = dayTasks.reduce((s, t) => s + t.duration, 0);
-      return { day, tasks: dayTasks, totalMinutes };
+    return weekDates.map((d) => {
+      const blocks = getBlocksForDate(d);
+      const map = new Map<string, { subject: string; duration: number; color: string }>();
+      blocks.forEach((b) => {
+        const cur = map.get(b.subject);
+        if (cur) cur.duration += b.duration;
+        else map.set(b.subject, { subject: b.subject, duration: b.duration, color: b.color });
+      });
+      const dayTasks = Array.from(map.values());
+      return {
+        day: DAYS_OF_WEEK[d.getDay()],
+        tasks: dayTasks,
+        totalMinutes: dayTasks.reduce((s, t) => s + t.duration, 0),
+      };
     });
-  }, [calculatedTasks, settings.studyDaysPerWeek]);
+  }, [weekDates, getBlocksForDate]);
+
+  const subjectProgress: SubjectProgress[] = useMemo(() => {
+    const map = new Map<string, SubjectProgress>();
+    weekDates.forEach((d) =>
+      getBlocksForDate(d).forEach((b) => {
+        const cur = map.get(b.subject) ?? { subject: b.subject, color: b.color, doneMinutes: 0, totalMinutes: 0 };
+        cur.totalMinutes += b.duration;
+        if (b.done) cur.doneMinutes += b.duration;
+        map.set(b.subject, cur);
+      })
+    );
+    return Array.from(map.values());
+  }, [weekDates, getBlocksForDate]);
 
   const addTask = useCallback((task: Omit<Task, "id">) => {
     setTasks((prev) => [...prev, { ...task, id: crypto.randomUUID() }]);
@@ -54,36 +108,57 @@ export const useStudyPlanner = () => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
   }, []);
 
-  const toggleTaskCompleted = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
-  }, []);
-
-  const clearCompleted = useCallback(() => {
-    setTasks((prev) => prev.filter((t) => !t.completed));
-  }, []);
-
-  const resetPlan = useCallback(() => {
-    setTasks([]);
-  }, []);
-
   const updateSettings = useCallback((newSettings: Partial<PlannerSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
+
+  const clearAllTasks = useCallback(() => setTasks([]), []);
+
+  const isManual = useCallback((id: string) => manualBlocks.some((b) => b.id === id), [manualBlocks]);
+
+  const updateBlock = useCallback(
+    (id: string, updates: Partial<DailyBlock>) => {
+      if (isManual(id)) {
+        setManualBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+      } else {
+        setOverrides((prev) => ({ ...prev, [id]: { ...prev[id], ...updates } }));
+      }
+    },
+    [isManual]
+  );
+
+  const addBlock = useCallback(
+    (block: Omit<DailyBlock, "id" | "color" | "done">) => {
+      const idx = calculatedTasks.findIndex((t) => t.subject.toLowerCase() === block.subject.toLowerCase());
+      const color = getSubjectColor(idx >= 0 ? idx : calculatedTasks.length + manualBlocks.length);
+      setManualBlocks((prev) => [...prev, { ...block, id: crypto.randomUUID(), color, done: false }]);
+    },
+    [calculatedTasks, manualBlocks.length]
+  );
+
+  const deleteBlock = useCallback(
+    (id: string) => {
+      if (isManual(id)) setManualBlocks((prev) => prev.filter((b) => b.id !== id));
+      else setOverrides((prev) => ({ ...prev, [id]: { ...prev[id], deleted: true } }));
+    },
+    [isManual]
+  );
 
   return {
     tasks,
     calculatedTasks,
     settings,
     weeklySchedule,
+    subjectProgress,
     totalWeight,
     addTask,
     removeTask,
     updateTask,
-    toggleTaskCompleted,
-    clearCompleted,
-    resetPlan,
     updateSettings,
+    clearAllTasks,
+    getBlocksForDate,
+    addBlock,
+    updateBlock,
+    deleteBlock,
   };
 };
