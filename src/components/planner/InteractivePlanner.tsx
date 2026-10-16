@@ -1,24 +1,31 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Sparkles, Download, ExternalLink } from "lucide-react";
 import { useStudyPlanner } from "@/hooks/useStudyPlanner";
 import TaskInputForm from "./TaskInputForm";
 import TaskList from "./TaskList";
 import WeeklyCalendar from "./WeeklyCalendar";
+import DailyPlanner from "./DailyPlanner";
 import PlannerSettings from "./PlannerSettings";
 
 const InteractivePlanner = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [view, setView] = useState<"weekly" | "daily">("weekly");
 
   const {
     calculatedTasks,
     settings,
     weeklySchedule,
+    subjectProgress,
     addTask,
     removeTask,
     updateSettings,
+    getBlocksForDate,
+    addBlock,
+    updateBlock,
+    deleteBlock,
   } = useStudyPlanner();
 
   const sheetCopyUrl = "https://docs.google.com/spreadsheets/d/1D2WSKU5QDCAKI99QoirYpZFrxl-ikRhwX1cUhXZahyk/copy";
@@ -66,7 +73,32 @@ const InteractivePlanner = () => {
 
           {/* Right Column - Tasks & Calendar */}
           <div className="lg:col-span-8 space-y-6">
-            <WeeklyCalendar schedule={weeklySchedule} />
+            <div role="tablist" className="inline-flex p-1 rounded-xl border border-border bg-card">
+              {(["weekly", "daily"] as const).map((v) => (
+                <button
+                  key={v}
+                  role="tab"
+                  aria-selected={view === v}
+                  onClick={() => setView(v)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    view === v ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {v === "weekly" ? "Weekly Overview" : "Daily View"}
+                </button>
+              ))}
+            </div>
+            {view === "weekly" ? (
+              <WeeklyCalendar schedule={weeklySchedule} progress={subjectProgress} />
+            ) : (
+              <DailyPlanner
+                getBlocksForDate={getBlocksForDate}
+                addBlock={addBlock}
+                updateBlock={updateBlock}
+                deleteBlock={deleteBlock}
+                subjects={calculatedTasks.map((t) => t.subject)}
+              />
+            )}
             <TaskList tasks={calculatedTasks} onRemoveTask={removeTask} />
           </div>
         </motion.div>

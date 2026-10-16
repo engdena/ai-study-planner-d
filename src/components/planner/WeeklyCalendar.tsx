@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
 import { CalendarDays } from "lucide-react";
 import { DaySchedule, formatDurationFromMinutes } from "@/types/studyPlanner";
+import type { SubjectProgress } from "@/hooks/useStudyPlanner";
 
 interface WeeklyCalendarProps {
   schedule: DaySchedule[];
+  progress?: SubjectProgress[];
 }
 
-const WeeklyCalendar = ({ schedule }: WeeklyCalendarProps) => {
+const WeeklyCalendar = ({ schedule, progress = [] }: WeeklyCalendarProps) => {
   const maxMinutes = Math.max(...schedule.map((d) => d.totalMinutes), 1);
 
   return (
@@ -84,21 +86,29 @@ const WeeklyCalendar = ({ schedule }: WeeklyCalendarProps) => {
             </motion.div>
           ))}
 
-          {/* Legend */}
+          {/* Subject progress (synced with Daily View) */}
           <div className="pt-4 border-t border-border mt-6">
-            <p className="text-xs text-muted-foreground mb-2">Legend</p>
-            <div className="flex flex-wrap gap-3">
-              {schedule[0]?.tasks.map((task) => (
-                <div key={task.subject} className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: task.color }}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {task.subject}
-                  </span>
-                </div>
-              ))}
+            <p className="text-xs text-muted-foreground mb-3">Weekly progress by subject</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {progress.map((p) => {
+                const pct = p.totalMinutes ? Math.round((p.doneMinutes / p.totalMinutes) * 100) : 0;
+                return (
+                  <div key={p.subject} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-2 text-foreground">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                        {p.subject}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {pct === 100 ? "Completed" : `${formatDurationFromMinutes(p.doneMinutes)} / ${formatDurationFromMinutes(p.totalMinutes)}`}
+                      </span>
+                    </div>
+                    <div className="h-1 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: p.color }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
